@@ -28,13 +28,17 @@ public class car_Move : MonoBehaviour
 
     private Vector2 startTouchPosition, endTouchPosition;
     public bool gameOver;
-    private float coin = 0;
+    private int coin = 0;
     public TextMeshProUGUI textForCoins;
+    public TextMeshProUGUI totalCoins;
+ 
     public GameObject carGameObject;
 
     public GameObject restartScreen;
 
     private PauseMenu pause_menu;
+
+    public GameObject pause_Button;
 
     // Start is called before the first frame update
     void Start()
@@ -55,35 +59,24 @@ public class car_Move : MonoBehaviour
         //restartScreen = GetComponent<GameObject>();
         //Physics.gravity *= gravityModifier;
 
+        losingGas = true;
+
+        totalCoins.text = PlayerPrefs.GetInt("textForCoins", 0).ToString();
+
+        //pause_Button.SetActive(true);
+        //restartScreen.SetActive(false);
     }
 
     // Update is called once per frame
 
+    public void KeepCoins()
+    {
+        PlayerPrefs.SetInt("textForCoins", coin);
+        totalCoins.text = textForCoins.ToString();
+    }
+
     void Update()
     {
-
-        if (!pause_menu.paused)
-        {
-            UnityEngine.Debug.Log("ITS PAUSED");
-            //losingGas = false;
-            //stopScrolling = true;
-            //Time.timeScale = 0f;
-
-        }
-        
-        else if (!pause_menu.unpaused)
-        {
-            UnityEngine.Debug.Log("ITS UNPAUSED");
-            //losingGas = true;
-            //stopScrolling = false;
-            //Time.timeScale = 1f;
-        }
-
-
-        //if (startingMenu == true)
-        //{
-        //Time.timeScale = 0;
-        //}
 
         if (!stopScrolling)
         {
@@ -107,16 +100,24 @@ public class car_Move : MonoBehaviour
             }
         }
 
+        //if (!pause_menu.paused)
+        //{
+            if (losingGas == true)
+            {
+                if (!pause_menu.paused)
+                {
+                    TakeDamage(0.007f);
+                }
+                //healthBar.value = health;
+            }
 
-        if (losingGas == true)
-        {
-            TakeDamage(0.007f);
-        }
+            else if (currentHealth <= 0.0f)
+            {
+                UnityEngine.Debug.Log("NoMoreGas");
+                //losingGas = false;
+            }
+        //}
 
-        else if (currentHealth <= 0.0f)
-        {
-            losingGas = false;
-        }
 
 
         //if (!pause_menu.paused)
@@ -127,31 +128,6 @@ public class car_Move : MonoBehaviour
         //        TakeDamage(0.007f);
         //    }
 
-        //    else if (currentHealth <= 0)
-        //    {
-        //        UnityEngine.Debug.Log("NO GAS");
-        //        losingGas = false;
-        //        StartCoroutine(your_timer());
-        //        StartCoroutine(stop_scrolling());
-        //    }
-
-        //IEnumerator your_timer()
-        //{
-
-        //    //playerAnim.SetTrigger("CarCrash");
-        //    yield return new WaitForSeconds(0.23f);
-        //    startRestart = true;
-        //    restartScreen.gameObject.SetActive(true);
-        //    //Time.timeScale = 0;
-
-        //}
-
-        //    IEnumerator stop_scrolling()
-        //    {
-        //        yield return new WaitForSeconds(0.06f);
-        //        stopScrolling = true;
-        //    }
-        //}
 
     }
 
@@ -161,7 +137,31 @@ public class car_Move : MonoBehaviour
         currentHealth -= damage;
         healthBar.SetHealthBar(currentHealth);
 
+        if (currentHealth <= 0.0f)
+        {
+            UnityEngine.Debug.Log("NoMoreGas");
+            losingGas = false;
+            StartCoroutine(your_timer());
+            StartCoroutine(stop_scrolling());
+        }
 
+        IEnumerator your_timer()
+        {
+
+            //playerAnim.SetTrigger("CarCrash");
+            yield return new WaitForSeconds(0.23f);
+            //pause_Button.SetActive(false);
+            startRestart = true;
+            restartScreen.gameObject.SetActive(true);
+            //Time.timeScale = 0;
+
+        }
+
+        IEnumerator stop_scrolling()
+        {
+            yield return new WaitForSeconds(0.06f);
+            stopScrolling = true;
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -213,9 +213,10 @@ public class car_Move : MonoBehaviour
             Destroy(other.gameObject);
         }
 
-        if (other.tag == "Enemy" || currentHealth <= 0)
+        if (other.tag == "Enemy")
         {
             losingGas = false;
+
             StartCoroutine(your_timer());
             StartCoroutine(stop_scrolling());
             
@@ -236,7 +237,8 @@ public class car_Move : MonoBehaviour
             yield return new WaitForSeconds(0.23f);
             startRestart = true;
             restartScreen.gameObject.SetActive(true);
-            //Time.timeScale = 0;
+            
+
 
         }
 
@@ -248,6 +250,11 @@ public class car_Move : MonoBehaviour
 
     }
 
+    //public void KeepCoins()
+    //{
+    //    totalCoins.text = coin.ToString();
+    //    PlayerPrefs.SetInt("CoinAmount", coin);
+    //}
 
     // private void OnCollisionEnter(Collision collision)
     // {
